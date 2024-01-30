@@ -1,0 +1,209 @@
+:root {
+  --primary-color: #007bff;
+  --hover-color: #0056b3;
+  --background-color: #f9f9f9;
+  --border-color: #ddd;
+  --font-color: #666;
+  --font-bold-color: #333;
+  --white-color: #fff;
+  --footer-color: #f8f9fa;
+  --selected-color: #ddd;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+.Header {
+  background-color: var(--primary-color);
+  color: var(--white-color);
+  text-align: center;
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 2%;
+}
+
+body {
+  font-family: var(--font-family);
+}
+
+.App {
+  display: flex;
+}
+
+.pagination, .repo-container {
+  justify-content: center;
+}
+
+.pagination {
+  margin: 20px 0;
+}
+
+.filters button, footer button {
+  background-color: var(--primary-color);
+  border: none;
+  color: var(--white-color);
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 0 2px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.filters button {
+  margin-top: 2%;
+}
+
+footer button {
+  margin: 4px 2px;
+}
+
+.pagination button:hover, footer button:hover {
+  background-color: var(--hover-color);
+}
+
+.pagination button.active {
+  background-color: var(--hover-color);
+}
+
+footer {
+  background-color: var(--footer-color);
+  padding: 20px;
+  text-align: center;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  border-top: 1px solid var(--border-color);
+}
+
+.selected-repos, .selected-upstreams {
+  width: 45%;
+}
+
+.selected-repos ul, .selected-upstreams ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.selected-repos li, .selected-upstreams li {
+  margin-bottom: 10px;
+}
+
+.repo-key, .repo-packageType, .repo-url {
+  align-items: center;
+}
+
+.repo-key svg, .repo-packageType svg, .repo-url svg {
+  margin-right: 5px;
+}
+
+@media screen and (max-width: 600px) {
+  .container {
+    flex-direction: column;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-gap: 20px;
+  justify-content: center;
+  align-content: center;
+}
+
+.grid-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  background-color: var(--white-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  transition: box-shadow 0.3s ease;
+}
+
+.grid-item h2 {
+  font-size: 1.2em;
+  color: var(--font-bold-color);
+  margin: 0;
+}
+
+.grid-item p {
+  font-size: 0.9em;
+  color: var(--font-color);
+  margin: 0;
+}
+
+.grid-item .repo-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px;
+  background-color: var(--background-color);
+  border-radius: 4px;
+}
+
+.grid-item .repo-details p {
+  font-weight: bold;
+}
+
+.grid-item:hover {
+  background-color: #f1f1f1;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  cursor: pointer;
+}
+
+.grid-item.disabled:hover {
+  background-color: inherit; /* Reset the hover background color */
+  box-shadow: none; /* Remove the hover box shadow */
+  cursor: no-drop; /* Change the cursor to default instead of pointer */
+}
+
+.grid-item.selected {
+  background-color: var(--selected-color);
+}
+
+.json-output {
+  max-height: 500px;
+  overflow: auto;
+  margin-top: 20px;
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  border-radius: 4px;
+  background-color: var(--background-color);
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 4px;
+  background-color: var(--background-color);
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.filters fieldset {
+  border: 1px solid var(--border-color);
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 2%;
+}
+
+.filters legend {
+  font-weight: bold;
+  color: var(--font-bold-color);
+}
+
+.filters label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+  color: var(--font-color);
+}
+
+.filters input[type="checkbox"] {
+  margin-right: 5px;
+}

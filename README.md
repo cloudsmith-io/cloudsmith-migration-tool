@@ -100,7 +100,16 @@ Look for these paths in the project folder to check logs : [server/logs/error.lo
 If you would like to contribute to the project, follow these steps:
 
 * Fork the repository
-* Create a new branch: git checkout -b feature-branch
-* Make your changes and commit: git commit -am 'Add new feature'
-* Push to the branch: git push origin feature-branch
+* Create a new branch:
+```
+git checkout -b feature-branch
+```
+* Make your changes and commit:
+```
+git commit -am 'Add new feature'
+```
+* Push to the branch:
+```
+git push origin feature-branch
+```
 * Submit a pull request

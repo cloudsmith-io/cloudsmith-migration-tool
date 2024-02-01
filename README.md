@@ -8,6 +8,7 @@ Extract, Transform, Load (ETL) tool to facilitate the extraction of the reposito
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
 - [Running the project](#running-the-project)
+- [How to Guide](#how-to-guide)
 - [Contributing](#contributing)
 
   
@@ -62,6 +63,38 @@ node server.js
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to run the mapping tool in your browser.
+
+## How to Guide
+
+### User Authentication screen
+
+* Cloudsmith Org Name - Name of the Cloudsmith organisation (https://cloudsmith.io/<org-name>/repos/)
+* Cloudsmith API Key - API Key generated from Cloudsmith org -> Users -> API Settings.
+* JFrog Org Name - The name of the JFrog Artifactory cloud instance can be checked from MyJFrog(JPD Name)
+* JFrog API Key - <Bearer AccessToken> Access Token can be generated from JFrog Artifactory cloud from the User Management screen.
+
+### Auto-merge to single-format repo 
+* This option enables users to automatically merge similar format source repositories into a single repository at the destination.
+* Users can choose a naming convention for the destination repositories or choose the default format <AutoCreated-format>
+
+### Add selected repositories to the group
+* This option enables users to manually merge source repositories into a user-defined multi-format repository or an already existing repository at Cloudsmith.
+* Users can choose a naming convention for each of the destination repositories.
+
+### Migrate Repositories
+* This option allows users to migrate the repositories from the mapping JSON(generated after using any of the above two options) to the Cloudsmith instance.
+* The JSON file is auto-downloaded that would be required as input for the Data migration tool.
+
+### Download JSON
+* Users can also manually download the JSON file before doing the migration.
+
+### Update Credentials
+* Users can switch to another JFrog or Cloudsmith workspace in case they want to migrate from multiple instances.
+* After updating the JFrog credentials, new repository metadata will be fetched from the new instance.
+
+### Errors & Logs
+Look for these paths in the project folder to check logs : [server/logs/error.log](server/logs/error.log) & [server/logs/app.log](server/logs/app.log.).
+
 
 ## Contributing
 If you would like to contribute to the project, follow these steps:

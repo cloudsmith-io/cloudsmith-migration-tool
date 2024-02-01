@@ -1,5 +1,7 @@
 const logger = require("../logger");
-const constants=require("../constants/constant.js")
+const constants = require("../constants/constant.js");
+
+// Function to prevent circular references in JSON.stringify
 const replacerFunc = () => {
     const visited = new WeakSet();
     return (key, value) => {
@@ -12,49 +14,46 @@ const replacerFunc = () => {
         return value;
     };
 };
-// Adjust the formatFileSize function to handle 0 bytes appropriately
+
+// Function to format file sizes in a human-readable way
 function formatFileSize(size) {
-    if (size === 0) {
-        return "0 B";
-    } else if (size < 1024) {
-        return size + " B";
-    } else if (size < 1024 * 1024) {
-        return (size / 1024).toFixed(2) + " KB";
-    } else if (size < 1024 * 1024 * 1024) {
-        return (size / (1024 * 1024)).toFixed(2) + " MB";
-    } else {
-        return (size / (1024 * 1024 * 1024)).toFixed(2) + " GB";
-    }
+    if (size === 0) return "0 B";
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`;
+    if (size < 1024 * 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(2)} MB`;
+    return `${(size / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
+// Function to validate the request body, API key, and owner
 function validatebody(reqBody, apiKey, owner) {
     if (!Array.isArray(reqBody) || !apiKey || !owner) {
-        logger.error(
-            "error in data either the body is not array or api or owner is absent"
-        );
+        logger.error("Error: The body is not an array or the API key or owner is missing");
         return false;
     }
-    for (let i = 0; i < reqBody.length; i++) {
-        let repo = reqBody[i];
-        if (repo["upstreams"]) {
-            for (let j = 0; j < repo["upstreams"].length; j++) {
-                let upstreamRepo = repo["upstreams"][j];
-                const regex = new RegExp("^(https?)://[^s/$.?#].*$");
-                if (upstreamRepo["url"] && !regex.test(upstreamRepo["url"])) {
-                    logger.error("url is not a valid regex");
+
+    const urlRegex = new RegExp("^(https?)://[^s/$.?#].*$");
+    for (const repo of reqBody) {
+        if (repo.upstreams) {
+            for (const upstreamRepo of repo.upstreams) {
+                if (upstreamRepo.url && !urlRegex.test(upstreamRepo.url)) {
+                    logger.error("Error: The URL is not valid");
                     return false;
                 }
             }
         }
     }
+
     return true;
 }
+
+// Function to get the repository type
 function getRepoType(repoType) {
     return constants.PACKAGE_FORMATS[repoType];
 }
-module.exports={
+
+module.exports = {
     replacerFunc,
     formatFileSize,
     getRepoType,
     validatebody
-}
+};

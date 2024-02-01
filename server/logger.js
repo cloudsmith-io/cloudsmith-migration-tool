@@ -6,9 +6,11 @@ const logFormat = printf(({ level, message, timestamp }) => {
   return `${timestamp} ${level}: ${message}`;
 });
 
-const normalLogTransport = new transports.File({
-    filename: 'logs/app.log',
-    level: 'info',
+// Function to create a transport with a given filename and level
+function createTransport(filename, level) {
+  return new transports.File({
+    filename,
+    level,
     format: combine(
       timestamp({
         format: 'YYYY-MM-DD HH:mm:ss',
@@ -16,25 +18,19 @@ const normalLogTransport = new transports.File({
       logFormat
     ),
   });
-  
-  const errorLogTransport = new transports.File({
-    filename: 'logs/error.log',
-    level: 'error',
-    format: combine(
-      timestamp({
-        format: 'YYYY-MM-DD HH:mm:ss',
-      }),
-      logFormat
-    ),
-  });
-  
-  const logger = createLogger({
-    transports: [normalLogTransport, errorLogTransport],
-  });
+}
+
+const normalLogTransport = createTransport('logs/app.log', 'info');
+const errorLogTransport = createTransport('logs/error.log', 'error');
+
+const logger = createLogger({
+  transports: [normalLogTransport, errorLogTransport],
+});
+
 logger.stream = {
-    write: function (message) {
-      logger.info(message.trim());
-    },
-  };
+  write: function (message) {
+    logger.info(message.trim());
+  },
+};
 
 module.exports = logger;

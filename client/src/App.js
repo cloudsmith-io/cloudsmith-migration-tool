@@ -44,9 +44,12 @@ function App() {
   const [loadingMessage, setLoadingMessage] = useState("");
   const [cloudsmithRepos, setCloudsmithRepos] = useState([]);
   const [cloudsmithUser, setCloudsmithUser] = useState("");
-  const [searchText, setSearchText] = useState("");
-  const [searchedColumn, setSearchedColumn] = useState("");
+  const [setSearchText] = useState("");
+  const [setSearchedColumn] = useState("");
   const { Header, Footer, Sider, Content } = Layout;
+  const [isFeedbackModalVisible, setIsFeedbackModalVisible] = useState(false);
+  const [isThankYouModalVisible, setIsThankYouModalVisible] = useState(false);
+  const [feedbackForm] = Form.useForm();
 
   const [cloudsmithApiKey, setCloudsmithApiKey] = useState(
     localStorage.getItem("cloudsmithApiKey") || ""
@@ -673,6 +676,40 @@ function App() {
       onCancel: handleOkOrCancel,
     });
   };
+  // Function to show the feedback modal
+  const showFeedbackModal = () => {
+    setIsFeedbackModalVisible(true);
+  };
+
+  // Function to handle feedback form submission
+  const handleFeedbackSubmit = () => {
+    feedbackForm.validateFields()
+      .then(values => {
+        const emailTitle = `Data mapping tool feedback from ${values.name} at ${values.organisation}`;
+        const emailBody = `Name: ${values.name}\nEmail: ${values.email}\nOrganisation: ${values.organisation}\nFeedback: ${values.feedback}`;
+        
+        // Open the user's email client
+        window.location.href = `mailto:support@cloudsmith.io?subject=${encodeURIComponent(emailTitle)}&body=${encodeURIComponent(emailBody)}`;
+  
+        // Close the feedback modal and open the thank you modal
+        setIsFeedbackModalVisible(false);
+        setIsThankYouModalVisible(true);
+      })
+      .catch(errorInfo => {
+        // Handle form validation failure
+        console.error('Validation failed:', errorInfo);
+      });
+  };
+
+  // Function to handle modal cancellation
+  const handleFeedbackCancel = () => {
+    setIsFeedbackModalVisible(false);
+  };
+
+  // Function to close the thank you modal
+  const closeThankYouModal = () => {
+    setIsThankYouModalVisible(false);
+  };
 
   return (
     // if no credentials are provided, show the form
@@ -748,6 +785,9 @@ function App() {
         <Sider width="24%">
           <div className="filters">
             <h1>Welcome, {cloudsmithUser}</h1>
+            <Tooltip title="Click to provide feedback">
+              <button onClick={showFeedbackModal}>Tool Feedback</button>
+            </Tooltip>
             <Tooltip title="Click to auto-merge to single-format repo">
               <button onClick={createPackageLevelRepos}>
                 Auto-merge to single-format repo
@@ -945,6 +985,69 @@ function App() {
         </Sider>
         <Layout>
           <Header className="Header">Cloudsmith Migration Tool</Header>
+          <Modal
+            title="Feedback"
+            open={isFeedbackModalVisible}
+            onOk={handleFeedbackSubmit}
+            onCancel={handleFeedbackCancel}
+          >
+            <Form form={feedbackForm} layout="vertical">
+              <Form.Item
+                name="name"
+                rules={[{ required: true, message: "Please input your name!" }]}
+              >
+                <Input placeholder="Name" />
+              </Form.Item>
+              <Form.Item
+                name="email"
+                rules={[
+                  { required: true, message: "Please input your email!" },
+                  { type: "email", message: "Please enter a valid email!" },
+                ]}
+              >
+                <Input placeholder="Email address" />
+              </Form.Item>
+              <Form.Item
+                name="organisation"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your organisation name!",
+                  },
+                ]}
+              >
+                <Input placeholder="Organisation name" />
+              </Form.Item>
+              <Form.Item
+                name="feedback"
+                rules={[
+                  { required: true, message: "Please input your feedback!" },
+                ]}
+              >
+                <Input.TextArea placeholder="Feedback details" />
+              </Form.Item>
+            </Form>
+          </Modal>
+          <Modal
+            title="Thank You"
+            open={isThankYouModalVisible}
+            onOk={closeThankYouModal}
+            onCancel={closeThankYouModal}
+          >
+            <p>
+              Thank you for your feedback. Please check your email client and
+              send the email. If you would like to contribute to the project
+              please visit the{" "}
+              <a
+                href="https://github.com/cloudsmith-io/cloudsmith-migration-tool?tab=readme-ov-file#contributing"
+                target="_blank"
+                rel="noreferrer"
+              >
+                contributing
+              </a>{" "}
+              section of the README.
+            </p>
+          </Modal>
           <Content>
             <div className="grid">
               {currentItems.map((item) => {

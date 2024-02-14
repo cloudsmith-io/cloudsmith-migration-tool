@@ -35,7 +35,7 @@ async function getRepoSpecificData(req, headers, data) {
                 const url = getRepoUrl(req)
                 headers = getHeaders(req);
                 const repoListData = await axios.get(url, {headers: headers});
-                const res = getJfrogData(repoListData, req.headers["x-jfrogdomain"], headers)
+                const res = await getJfrogData(repoListData, req.headers["x-jfrogdomain"], headers)
                 return res;
         }
     }

@@ -159,7 +159,7 @@ function App() {
         setHasFetched(false);
         return;
       }
-      setCloudsmithUser(cloudsmithUser.name);
+      setCloudsmithUser(cloudsmithUser?.name);
       setLoadingMessage("Loading your Cloudsmith data");
       // Fetch Cloudsmith repo data
       const cloudsmithRepoData = await fetchCloudsmithRepos();
@@ -255,7 +255,7 @@ function App() {
         title: "Choose an action",
         content: (
           <div>
-            Would you like to create a new group or add to an existing one?
+            Would you like to create a new repository or add to an existing one?
           </div>
         ),
         okText: "Create new",
@@ -380,11 +380,11 @@ function App() {
 
     const showCreateNewModal = () => {
       Modal.confirm({
-        title: "Please enter the group name",
+        title: "Please enter the repository name",
         content: (
           <Input
             onChange={(e) => (groupName = e.target.value)}
-            placeholder="Group name"
+            placeholder="Repository name"
           />
         ),
         onOk() {
@@ -396,14 +396,14 @@ function App() {
           if (cloudsmithRepoExists) {
             Modal.confirm({
               title:
-                "A repository with this name already exists in Cloudsmith. Do you want to map the new group to it?",
+                "A repository with this name already exists in Cloudsmith. Do you want to map the new repository to it?",
               onOk() {
                 handleOverwrite();
               },
             });
           } else if (existingGroup) {
             Modal.confirm({
-              title: "This group already exists. Do you want to overwrite it?",
+              title: "This repositoriy already exists. Do you want to overwrite it?",
               onOk() {
                 overwrite = true;
                 handleOverwrite();
@@ -845,9 +845,9 @@ function App() {
                   {number}
                 </button>
               ))}
-              <Tooltip title="Click to add selected repositories to group">
+              <Tooltip title="Click to add selected repositories to Cloudsmith repository">
                 <button onClick={handleCopy}>
-                  Add selected repositories to group
+                  Add selected repositories to Cloudsmith repository
                 </button>
               </Tooltip>
             </div>

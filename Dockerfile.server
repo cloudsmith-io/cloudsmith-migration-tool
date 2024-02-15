@@ -1,0 +1,12 @@
+# syntax=docker/dockerfile:1.4
+
+FROM node:lts-buster-slim
+
+WORKDIR /usr/server
+
+COPY server /usr/server/
+RUN npm install --legacy-peer-deps
+
+EXPOSE 5000
+
+CMD ["node", "server.js"]

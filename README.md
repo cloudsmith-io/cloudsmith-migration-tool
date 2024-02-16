@@ -44,6 +44,16 @@ git clone https://github.com/cloudsmith-io/cloudsmith-migration-tool.git
 cd cloudsmith-migration-tool
 ```
 
+## Docker
+
+If you have docker (and docker-compose installed), you can bring up the stack like so:
+
+```shell
+docker-compose up
+```
+
+Then navigate to [http://localhost:3333](http://localhost:3333)
+
 ## Running the project
 
 Open two terminals/shells:

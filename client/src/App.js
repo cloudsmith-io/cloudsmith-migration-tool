@@ -403,7 +403,8 @@ function App() {
             });
           } else if (existingGroup) {
             Modal.confirm({
-              title: "This repositoriy already exists. Do you want to overwrite it?",
+              title:
+                "This repositoriy already exists. Do you want to overwrite it?",
               onOk() {
                 overwrite = true;
                 handleOverwrite();
@@ -516,6 +517,7 @@ function App() {
     // Get included repositories and upstreams
     const includedRepos = [];
     const upstreams = [];
+    const localRepos = [];
     reposArray.forEach((repo) => {
       includedRepos.push(repo.key);
       if (repo.type === "REMOTE") {
@@ -523,6 +525,13 @@ function App() {
           name: repo.key,
           url: repo.url,
           upstream_format: repo.packageType,
+        });
+      }
+      // if repo type local, add
+      if (repo.type === "LOCAL") {
+        localRepos.push({
+          name: repo.key,
+          format: repo.packageType,
         });
       }
     });
@@ -547,6 +556,7 @@ function App() {
         format: uniqueFormats,
         "artifactory-repositories-included": includedRepos,
         upstreams: upstreams,
+        "local-repositories-included": localRepos,
         total_size: formatBytes(totalSize),
         total_size_local: formatBytes(
           totalSizeLocal.reduce((a, b) => a + b, 0)
@@ -583,11 +593,41 @@ function App() {
   };
 
   function downloadJson() {
+    let json_jfrog_api_key = "";
+    let json_cludsmith_api_key = "";
+    // use modal to ask the user if they want to include their API key in the json
+    Modal.confirm({
+      title: "Would you like to include your API keys in the JSON?",
+      okText: "Yes",
+      cancelText: "No",
+      onOk() {
+        json_jfrog_api_key = apiKeyJfrog;
+        json_cludsmith_api_key = cloudsmithApiKey;
+        download(json_jfrog_api_key, json_cludsmith_api_key);
+      },
+      onCancel() {
+        // keep the api keys as empty strings
+        download(json_jfrog_api_key, json_cludsmith_api_key);
+      },
+    });
+  }
+
+  function download(json_jfrog_api_key, json_cludsmith_api_key) {
+    const finalJson = {
+      cloudsmith_org: jfrogOrganisation,
+      cloudsmith_api_key: json_cludsmith_api_key,
+      jfrog_api_key: json_jfrog_api_key,
+      jfrog_org: cloudsmithOrg,
+      mapping_data: JSON.parse(displayData),
+    };
     const dataStr =
-      "data:text/json;charset=utf-8," + encodeURIComponent(displayData);
+      "data:text/json;charset=utf-8," +
+      encodeURIComponent(JSON.stringify(finalJson));
     const downloadAnchorNode = document.createElement("a");
     downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "groups.json");
+    // make filename = mapping_data_<jfrog_org>_<cloudsmith_org>_<timestamp>.json
+    const fileName = `mapping_data_${jfrogOrganisation}_${cloudsmithOrg}_${Date.now()}.json`;
+    downloadAnchorNode.setAttribute("download", fileName);
     document.body.appendChild(downloadAnchorNode); // required for firefox
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
@@ -683,21 +723,24 @@ function App() {
 
   // Function to handle feedback form submission
   const handleFeedbackSubmit = () => {
-    feedbackForm.validateFields()
-      .then(values => {
+    feedbackForm
+      .validateFields()
+      .then((values) => {
         const emailTitle = `Data mapping tool feedback from ${values.name} at ${values.organisation}`;
         const emailBody = `Name: ${values.name}\nEmail: ${values.email}\nOrganisation: ${values.organisation}\nFeedback: ${values.feedback}`;
-        
+
         // Open the user's email client
-        window.location.href = `mailto:support@cloudsmith.io?subject=${encodeURIComponent(emailTitle)}&body=${encodeURIComponent(emailBody)}`;
-  
+        window.location.href = `mailto:support@cloudsmith.io?subject=${encodeURIComponent(
+          emailTitle
+        )}&body=${encodeURIComponent(emailBody)}`;
+
         // Close the feedback modal and open the thank you modal
         setIsFeedbackModalVisible(false);
         setIsThankYouModalVisible(true);
       })
-      .catch(errorInfo => {
+      .catch((errorInfo) => {
         // Handle form validation failure
-        console.error('Validation failed:', errorInfo);
+        console.error("Validation failed:", errorInfo);
       });
   };
 

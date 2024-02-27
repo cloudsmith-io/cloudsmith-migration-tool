@@ -573,6 +573,18 @@ function App() {
     return result;
   }
 
+  function handleSelectedVirtualRepo(virtualRepo) {
+    // Find the repository objects that match the names in the virtual repository
+    const reposToSelect = data.filter((repo) =>
+      virtualRepo.repositories.includes(repo.key)
+    );
+
+    // Pass the selected repos to updateSelectedRepos
+    reposToSelect.forEach((repo) => {
+      updateSelectedRepos(repo);
+    });
+  }
+
   const updateSelectedRepos = (repo) => {
     setSelectedRepos((prev) => {
       let newSelectedRepos;
@@ -1099,11 +1111,11 @@ function App() {
                     key={item.key}
                     className={`grid-item ${
                       selectedRepos[item.key] ? "selected" : ""
-                    } ${item.type === "VIRTUAL" ? "disabled" : ""}`}
+                    }`}
                     onClick={
                       item.type !== "VIRTUAL"
                         ? () => updateSelectedRepos(item)
-                        : null
+                        : () => handleSelectedVirtualRepo(item)
                     }
                   >
                     <h2>
@@ -1197,14 +1209,13 @@ function App() {
                   (repo) => repo.type === "REMOTE"
                 ).length
               }
+              ) VIRTUAL (
+              {
+                Object.values(selectedRepos).filter(
+                  (repo) => repo.type === "VIRTUAL"
+                ).length
+              }
               )
-              {/* VIRTUAL (
-                {
-                  Object.values(selectedRepos).filter(
-                    (repo) => repo.type === "VIRTUAL"
-                  ).length
-                }
-                ) */}
             </b>
           </Footer>
         </Layout>

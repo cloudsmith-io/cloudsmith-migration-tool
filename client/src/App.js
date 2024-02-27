@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import ReactJson from "react-json-view";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { SearchOutlined } from "@ant-design/icons";
@@ -25,15 +25,14 @@ import {
   Layout,
   Table,
   Space,
+  Pagination
 } from "antd";
 import "./App.css";
 
 function App() {
   const [data, setData] = useState([]);
   const [filter, setFilter] = useState({ packageType: {}, repositoryType: {} });
-  const [currentPage, setCurrentPage] = useState(1);
   const [selectedRepoKey, setSelectedRepoKey] = useState(null);
-  const [itemsPerPage] = useState(50);
   const [selectedRepos, setSelectedRepos] = useState({});
   const [displayData, setDisplayData] = useState("");
   const [repoCounts, setRepoCounts] = useState({});
@@ -67,21 +66,37 @@ function App() {
   const [hasFetched, setHasFetched] = useState(false);
   const uniquePackageTypes = [...new Set(data.map((item) => item.packageType))];
   const uniqueRepositoryTypes = [...new Set(data.map((item) => item.type))];
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(15);
+  const [searchTerm, setSearchTerm] = useState("");
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+  const filteredData = useMemo(
+    () =>
+      data.filter(
+        (item) =>
+          (Object.keys(filter.packageType).every(
+            (key) => !filter.packageType[key]
+          ) ||
+            filter.packageType[item.packageType]) &&
+          (Object.keys(filter.repositoryType).every(
+            (key) => !filter.repositoryType[key]
+          ) ||
+            filter.repositoryType[item.type]) &&
+          item.key.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [data, filter, searchTerm]
+  );
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const filteredData = data.filter(
-    (item) =>
-      (Object.keys(filter.packageType).every(
-        (key) => !filter.packageType[key]
-      ) ||
-        filter.packageType[item.packageType]) &&
-      (Object.keys(filter.repositoryType).every(
-        (key) => !filter.repositoryType[key]
-      ) ||
-        filter.repositoryType[item.type])
-  );
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
-  const pageNumbers = [];
+
   const handleCheckboxChange = (filterKey, value) => {
     setFilter((prevFilter) => ({
       ...prevFilter,
@@ -99,9 +114,6 @@ function App() {
     localStorage.setItem("jfrogOrganisation", jfrogOrganisation);
   }, [cloudsmithApiKey, cloudsmithOrg, apiKeyJfrog, jfrogOrganisation]);
 
-  for (let i = 1; i <= Math.ceil(filteredData.length / itemsPerPage); i++) {
-    pageNumbers.push(i);
-  }
   const fetchCloudsmithRepos = async () => {
     const response = await fetch(
       "http://localhost:5000/api/cloudsmithRepoDetails",
@@ -891,15 +903,6 @@ function App() {
               })}
             </fieldset>
             <div className="pagination">
-              {pageNumbers.map((number) => (
-                <button
-                  key={number}
-                  onClick={() => setCurrentPage(number)}
-                  className={currentPage === number ? "active" : ""}
-                >
-                  {number}
-                </button>
-              ))}
               <Tooltip title="Click to add selected repositories to Cloudsmith repository">
                 <button onClick={handleCopy}>
                   Add selected repositories to Cloudsmith repository
@@ -1104,6 +1107,19 @@ function App() {
             </p>
           </Modal>
           <Content>
+            <div className="pagination">
+              <Input.Search
+                placeholder="Search for JFrog repositories"
+                onSearch={(value) => setSearchTerm(value)}
+              />
+
+              <Pagination
+                current={currentPage}
+                total={filteredData.length}
+                pageSize={itemsPerPage}
+                onChange={(page) => setCurrentPage(page)}
+              />
+            </div>
             <div className="grid">
               {currentItems.map((item) => {
                 return (

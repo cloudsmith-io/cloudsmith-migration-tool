@@ -638,10 +638,10 @@ function App() {
 
   function download(json_jfrog_api_key, json_cludsmith_api_key) {
     const finalJson = {
-      cloudsmith_org: jfrogOrganisation,
+      cloudsmith_org: cloudsmithOrg,
       cloudsmith_api_key: json_cludsmith_api_key,
       jfrog_api_key: json_jfrog_api_key,
-      jfrog_org: cloudsmithOrg,
+      jfrog_org: jfrogOrganisation,
       mapping_data: JSON.parse(displayData),
     };
     const dataStr =

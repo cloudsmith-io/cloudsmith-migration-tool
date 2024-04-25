@@ -45,9 +45,9 @@ async function getJfrogData(repoListData, jfrog_domain, headers) {
         // Otherwise, make the request
         let url;
         if (item.type === "VIRTUAL") {
-            url = `https://${jfrog_domain}.jfrog.io/artifactory/api/repositories/${item.key}`;
+            url = `https://${jfrog_domain}/artifactory/api/repositories/${item.key}`;
         } else if (item.type === "LOCAL" || item.type === "REMOTE") {
-            url = `https://${jfrog_domain}.jfrog.io/artifactory/api/storage/${item.key}?list&deep=1`;
+            url = `https://${jfrog_domain}/artifactory/api/storage/${item.key}?list&deep=1`;
         }
 
         const res = await axios.get(url, {headers: headers});

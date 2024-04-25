@@ -814,10 +814,11 @@ function App() {
                     }
                   />
                 </Form.Item>
-                <Form.Item label="JFrog Org Name">
+                <Form.Item label="JFrog Org Domain">
                   <Input
                     id="jfrog-org"
                     value={jfrogOrganisation}
+                    defaultValue="testworkspace.jfrog.io"
                     onChange={(event) =>
                       setJfrogOrganisation(event.target.value)
                     }
@@ -1006,10 +1007,11 @@ function App() {
                         }
                       />
                     </Form.Item>
-                    <Form.Item label="JFrog Org Name">
+                    <Form.Item label="JFrog Org Domain">
                       <Input
                         id="jfrog-org"
                         value={jfrogOrganisation}
+                        defaultValue="testworkspace.jfrog.io"
                         onChange={(event) =>
                           setJfrogOrganisation(event.target.value)
                         }

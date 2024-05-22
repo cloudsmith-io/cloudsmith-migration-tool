@@ -50,6 +50,12 @@ function App() {
   const [isThankYouModalVisible, setIsThankYouModalVisible] = useState(false);
   const [feedbackForm] = Form.useForm();
 
+
+  const options_for_migration = ['local', 'cloud'];
+  const [selected_migration_type, setSelectedMigrationType] = useState(0);
+  function onChangeMigrationType(i) {
+    setSelectedMigrationType((prev) => (i === prev ? null : i));
+  }
   const [cloudsmithApiKey, setCloudsmithApiKey] = useState(
     localStorage.getItem("cloudsmithApiKey") || ""
   );
@@ -642,6 +648,7 @@ function App() {
       cloudsmith_api_key: json_cludsmith_api_key,
       jfrog_api_key: json_jfrog_api_key,
       jfrog_org: jfrogOrganisation,
+      migration_type:options_for_migration[selected_migration_type],
       mapping_data: JSON.parse(displayData),
     };
     const dataStr =
@@ -793,6 +800,21 @@ function App() {
             </Card>
           ) : (
             <fieldset>
+              {options_for_migration.map((o, i) => (
+                  <div key={i} style={{ display: 'inline-block', textAlign: 'center', width: '50%' }}>
+                    Migrating using
+                    <label style={{ display: 'block', marginBottom: '10px' }}>
+                      {o}
+                      <input
+                          type="checkbox"
+                          checked={i === selected_migration_type}
+                          onChange={() => onChangeMigrationType(i)}
+                          disabled={i === selected_migration_type} // Disable the checkbox if it's selected
+                          style={{ width: '100%', height: '20px' }}
+                      />
+                    </label>
+                  </div>
+              ))}
               <legend>
                 <FontAwesomeIcon icon={faLink} /> Insert Cloudsmith/JFrog
                 Credentials
@@ -981,6 +1003,22 @@ function App() {
               </Tooltip>
             </fieldset>
             <fieldset>
+              {options_for_migration.map((o, i) => (
+                  <div key={i} style={{ display: 'inline-block', textAlign: 'center', width: '50%' }}>
+                    Migrating using
+                    <label style={{ display: 'block', marginBottom: '10px' }}>
+                      {o}
+                      <input
+                          type="checkbox"
+                          checked={i === selected_migration_type}
+                          onChange={() => onChangeMigrationType(i)}
+                          disabled={i === selected_migration_type} // Disable the checkbox if it's selected
+                          style={{ width: '100%', height: '20px' }}
+                      />
+                    </label>
+                  </div>
+              ))}
+
               <legend>
                 <FontAwesomeIcon icon={faLink} /> Cloudsmith/JFrog Credentials
               </legend>

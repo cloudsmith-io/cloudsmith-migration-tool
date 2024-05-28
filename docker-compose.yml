@@ -1,8 +1,8 @@
-version: '3.7'
+version: "3.7"
 
 services:
   server:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile.server
     ports:

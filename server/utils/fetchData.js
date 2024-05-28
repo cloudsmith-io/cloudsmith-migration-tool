@@ -6,7 +6,7 @@ const axios = require("axios");
 const utils = require("./util.js");
 const logger = require("../logger");
 
-async function getRepoSpecificData(req, headers, data) {
+async function getRepoSpecificData(req) {
     try {
         let url, reqHeaders;
         switch (req.query.repotype) {
@@ -22,7 +22,10 @@ async function getRepoSpecificData(req, headers, data) {
         }
 
         const repoListData = await httpService.getRequest(url, reqHeaders);
-        const res = await getJfrogData(repoListData, req.headers["x-jfrogdomain"], reqHeaders);
+        // if value of x-loadPackageDetails is "load" then set a flag to true
+        const loadPackageDetails = req.headers["x-loadpackagedetails"] === "load";
+
+        const res = await getJfrogData(repoListData, req.headers["x-jfrogdomain"], reqHeaders, loadPackageDetails);
         return res;
     }
     catch(err) {
@@ -32,7 +35,7 @@ async function getRepoSpecificData(req, headers, data) {
 
 const cache = {};
 
-async function getJfrogData(repoListData, jfrog_domain, headers) {
+async function getJfrogData(repoListData, jfrog_domain, headers, loadPackageDetails) {
     const promises = repoListData.data.map(async (item) => {
         // Generate a unique cache key for this request
         const cacheKey = `${jfrog_domain}-${item.key}`;
@@ -46,7 +49,7 @@ async function getJfrogData(repoListData, jfrog_domain, headers) {
         let url;
         if (item.type === "VIRTUAL") {
             url = `https://${jfrog_domain}/artifactory/api/repositories/${item.key}`;
-        } else if (item.type === "LOCAL" || item.type === "REMOTE") {
+        } else if (item.type === "LOCAL" || item.type === "REMOTE" || item.type === "FEDERATED") {
             url = `https://${jfrog_domain}/artifactory/api/storage/${item.key}?list&deep=1`;
         }
 
@@ -72,39 +75,46 @@ async function getJfrogData(repoListData, jfrog_domain, headers) {
             );
             const virtualRepositories = details ? details.repositories : [];
             return {...item, repositories: virtualRepositories};
-        } else if (item.type === "LOCAL" || item.type === "REMOTE") {
-            const packageData = result.data;
-            logger.info(
-                `${item.type} repo received as ${JSON.stringify(
-                    packageData,
-                    utils.replacerFunc()
-                )}`
-            );
-            if (packageData) {
-                const files = packageData.files;
-                const folders = files.filter((file) => file.folder).length;
-                const totalSize = files
-                    .filter((file) => !file.folder) // Exclude folders from the calculation
-                    .reduce(
-                        (acc, file) => acc + (file.size ? parseInt(file.size) : 0),
-                        0
-                    );
-                const formattedTotalSize = utils.formatFileSize(totalSize);
+        } else if (item.type === "LOCAL" || item.type === "REMOTE" || item.type === "FEDERATED") {
+            if (loadPackageDetails) {
+                const packageData = result.data;
+                if (packageData) {
+                    const files = packageData.files;
+                    const folders = files.filter((file) => file.folder).length;
+                    const totalSize = files
+                        .filter((file) => !file.folder) // Exclude folders from the calculation
+                        .reduce(
+                            (acc, file) => acc + (file.size ? parseInt(file.size) : 0),
+                            0
+                        );
+                    const formattedTotalSize = utils.formatFileSize(totalSize);
 
+                    return {
+                        ...item,
+                        packagesInfo: {
+                            totalRepositorySize: formattedTotalSize,
+                            totalRepositorySizeBytes: totalSize,
+                            totalRepositoryFiles: files.length,
+                            totalRepositoryFolders: folders,
+                            repositoryPackages: files.map((file) => ({
+                                uri: file.uri,
+                                size: utils.formatFileSize(file.size ? parseInt(file.size) : 0),
+                                lastModified: file.lastModified,
+                                folder: file.folder,
+                                sha1: file.sha1,
+                            })),
+                        },
+                    };
+                }
+            } else {
                 return {
                     ...item,
                     packagesInfo: {
-                        totalRepositorySize: formattedTotalSize,
-                        totalRepositorySizeBytes: totalSize,
-                        totalRepositoryFiles: files.length,
-                        totalRepositoryFolders: folders,
-                        repositoryPackages: files.map((file) => ({
-                            uri: file.uri,
-                            size: utils.formatFileSize(file.size ? parseInt(file.size) : 0),
-                            lastModified: file.lastModified,
-                            folder: file.folder,
-                            sha1: file.sha1,
-                        })),
+                        totalRepositorySize: "0",
+                        totalRepositorySizeBytes: 0,
+                        totalRepositoryFiles: 0,
+                        totalRepositoryFolders: 0,
+                        repositoryPackages: [],
                     },
                 };
             }

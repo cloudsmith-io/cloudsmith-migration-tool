@@ -49,6 +49,7 @@ function App() {
   const [isFeedbackModalVisible, setIsFeedbackModalVisible] = useState(false);
   const [isThankYouModalVisible, setIsThankYouModalVisible] = useState(false);
   const [feedbackForm] = Form.useForm();
+  const [loadPackageDetails, setLoadPackageDetails] = useState(false);
 
   const [cloudsmithApiKey, setCloudsmithApiKey] = useState(
     localStorage.getItem("cloudsmithApiKey") || ""
@@ -176,7 +177,7 @@ function App() {
       // Fetch Cloudsmith repo data
       const cloudsmithRepoData = await fetchCloudsmithRepos();
       console.log(cloudsmithRepoData);
-      if (cloudsmithRepoData[0].error === "404") {
+      if (cloudsmithRepoData && cloudsmithRepoData.length > 0 && cloudsmithRepoData[0].error === "404") {
         console.error("Fetching Cloudsmith repos failed");
         setLoadingMessage(
           `Fetching Cloudsmith repos failed, Cloudsmith Organisation: ${cloudsmithOrg} does not exist`
@@ -195,6 +196,7 @@ function App() {
           "X-apiKey": apiKeyJfrog,
           "X-jfrogdomain": jfrogOrganisation,
           "Content-Type": "application/json",
+          "X-loadPackageDetails": loadPackageDetails ? "load" : "dontload",
         },
       });
       const data = await response.json();
@@ -204,7 +206,7 @@ function App() {
     } catch (error) {
       setHasFetched(false);
       console.error("An error occurred while fetching data:", error);
-      setLoadingMessage("An error occurred while fetching data");
+      setLoadingMessage("An error occurred while fetching data" + error);
       setIsLoading(false);
     }
   };
@@ -540,7 +542,7 @@ function App() {
         });
       }
       // if repo type local, add
-      if (repo.type === "LOCAL") {
+      if (repo.type === "LOCAL" || repo.type === "FEDERATED") {
         localRepos.push({
           name: repo.key,
           format: repo.packageType,
@@ -551,7 +553,7 @@ function App() {
     const totalSizeLocal = [];
     const totalSizeRemote = [];
     reposArray.forEach((repo) => {
-      if (repo.type === "LOCAL") {
+      if (repo.type === "LOCAL" || repo.type === "FEDERATED") {
         totalSizeLocal.push(getTotalRepositorySize(repo.key, repo.type));
       }
     });
@@ -784,88 +786,97 @@ function App() {
 
     !hasFetched ? (
       <Row justify="center" align="middle" style={{ minHeight: "100vh" }}>
-        <Col>
-          {isLoading ? (
-            <Card>
-              <p>Welcome: {cloudsmithUser}</p>
-              <Spin></Spin>
-              <p>{loadingMessage}</p>
-            </Card>
-          ) : (
-            <fieldset>
-              <legend>
-                <FontAwesomeIcon icon={faLink} /> Insert Cloudsmith/JFrog
-                Credentials
-              </legend>
-              <Form className="input-fields">
-                <Form.Item label="Cloudsmith Org Name">
-                  <Input
-                    id="cloudsmith-org"
-                    value={cloudsmithOrg}
-                    onChange={(event) => setCloudsmithOrg(event.target.value)}
-                  />
-                </Form.Item>
-                <Form.Item label="Cloudsmith API Key">
-                  <Input
-                    id="cloudsmith-api-key"
-                    value={cloudsmithApiKey}
-                    onChange={(event) =>
-                      setCloudsmithApiKey(event.target.value)
-                    }
-                  />
-                </Form.Item>
-                <Form.Item label="JFrog Org Domain">
-                  <Input
-                    id="jfrog-org"
-                    value={jfrogOrganisation}
-                    defaultValue="testworkspace.jfrog.io"
-                    onChange={(event) =>
-                      setJfrogOrganisation(event.target.value)
-                    }
-                  />
-                </Form.Item>
-                <Form.Item label="JFrog API Key">
-                  <Input
-                    id="jfrog-api-key"
-                    value={apiKeyJfrog}
-                    onChange={(event) => setApiKeyJfrog(event.target.value)}
-                  />
-                </Form.Item>
-                <Form.Item>
-                  <Tooltip title="Click to fetch data">
-                    <Button type="primary" onClick={fetchData}>
-                      Fetch Data
-                    </Button>
-                  </Tooltip>
-                </Form.Item>
-                {loadingMessage && (
-                  <b>
-                    <p style={{ color: "red" }}>{loadingMessage}</p>
-                  </b>
-                )}
-              </Form>
-            </fieldset>
+      <Col>
+        {isLoading ? (
+        <Card>
+          <p>Welcome: {cloudsmithUser}</p>
+          <Spin></Spin>
+          <p>{loadingMessage}</p>
+        </Card>
+        ) : (
+        <fieldset>
+          <legend>
+          <FontAwesomeIcon icon={faLink} /> Insert Cloudsmith/JFrog
+          Credentials
+          </legend>
+          <Form className="input-fields">
+          <Form.Item label="Cloudsmith Org Name">
+            <Input
+            id="cloudsmith-org"
+            value={cloudsmithOrg}
+            onChange={(event) => setCloudsmithOrg(event.target.value)}
+            />
+          </Form.Item>
+          <Form.Item label="Cloudsmith API Key">
+            <Input
+            id="cloudsmith-api-key"
+            value={cloudsmithApiKey}
+            onChange={(event) =>
+              setCloudsmithApiKey(event.target.value)
+            }
+            />
+          </Form.Item>
+          <Form.Item label="JFrog Org Domain">
+            <Input
+            id="jfrog-org"
+            value={jfrogOrganisation}
+            defaultValue="testworkspace.jfrog.io"
+            onChange={(event) =>
+              setJfrogOrganisation(event.target.value)
+            }
+            />
+          </Form.Item>
+          <Form.Item label="JFrog Access Token">
+            <Input
+            id="jfrog-api-key"
+            value={apiKeyJfrog}
+            onChange={(event) => setApiKeyJfrog(event.target.value)}
+            />
+          </Form.Item>
+          <Form.Item label="Load Package Details">
+            <Tooltip title="If your artifactory instance has a large number of artifacts, we suggest not selecting this box to speed up the loading time">
+            <input
+              type="checkbox"
+              checked={loadPackageDetails}
+              onChange={() => setLoadPackageDetails(!loadPackageDetails)}
+            />
+            </Tooltip>
+          </Form.Item>
+          <Form.Item>
+            <Tooltip title="Click to fetch data">
+            <Button type="primary" onClick={fetchData}>
+              Fetch Data
+            </Button>
+            </Tooltip>
+          </Form.Item>
+          {loadingMessage && (
+            <b>
+            <p style={{ color: "red" }}>{loadingMessage}</p>
+            </b>
           )}
-        </Col>
+          </Form>
+        </fieldset>
+        )}
+      </Col>
       </Row>
     ) : (
       <Layout>
-        <Sider width="24%">
-          <div className="filters">
-            <h1>Welcome, {cloudsmithUser}</h1>
-            <Tooltip title="Click to provide feedback">
-              <button onClick={showFeedbackModal}>Tool Feedback</button>
-            </Tooltip>
-            <Tooltip title="Click to auto-merge to single-format repo">
-              <button onClick={createPackageLevelRepos}>
-                Auto-merge to single-format repo
-              </button>
-            </Tooltip>
-            <fieldset>
-              <legend>
-                <FontAwesomeIcon icon={faFilter} /> Package Type
-              </legend>
-              {uniquePackageTypes.map((type) => {
+      <Sider width="24%">
+        <div className="filters">
+        <h1>Welcome, {cloudsmithUser}</h1>
+        <Tooltip title="Click to provide feedback">
+          <button onClick={showFeedbackModal}>Tool Feedback</button>
+        </Tooltip>
+        <Tooltip title="Click to auto-merge to single-format repo">
+          <button onClick={createPackageLevelRepos}>
+          Auto-merge to single-format repo
+          </button>
+        </Tooltip>
+        <fieldset>
+          <legend>
+          <FontAwesomeIcon icon={faFilter} /> Package Type
+          </legend>
+          {uniquePackageTypes.map((type) => {
                 const count = filteredData.filter(
                   (item) => item.packageType === type
                 ).length;
@@ -1139,6 +1150,8 @@ function App() {
                     <h2>
                       {item.type === "LOCAL" ? (
                         <FontAwesomeIcon icon={faDatabase} />
+                      ) : item.type === "FEDERATED" ? (
+                        <FontAwesomeIcon icon={faDatabase} />
                       ) : item.type === "REMOTE" ? (
                         <FontAwesomeIcon icon={faCloud} />
                       ) : (
@@ -1146,7 +1159,7 @@ function App() {
                       )}
                       <strong>
                         {item.key}
-                        {(item.type === "LOCAL" || item.type === "REMOTE") &&
+                        {(item.type === "LOCAL" || item.type === "REMOTE" || item.type === "FEDERATED") &&
                           ` (${repoCounts[item.key] || 0})`}
                       </strong>
                     </h2>{" "}

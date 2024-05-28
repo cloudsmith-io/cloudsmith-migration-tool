@@ -49,6 +49,7 @@ function getCloudsmithUserDetails(apiKey) {
         headers: {
             accept: "application/json",
             "X-Api-Key": `${apiKey}`,
+            'Cache-Control': 'no-cache',
         },
     };
 
@@ -64,7 +65,7 @@ function getCloudsmithUserDetails(apiKey) {
 }
 
 function getCloudsmithRepositories(apiKey, owner) {
-    const page_size = 50;
+    const page_size = 52;
     const options = {
         method: "GET",
         headers: {
@@ -86,12 +87,9 @@ function getCloudsmithRepositories(apiKey, owner) {
             }
         })
         .catch((err) => {
-            console.error(err);
+            console.error('Error fetching Cloudsmith repositories:', err);
             logger.error(
-                `error in fetching  cloudsmith repositories ${JSON.stringify(
-                    err,
-                    util.replacerFunc()
-                )}`
+                `Error in fetching Cloudsmith repositories: ${err.message}\n${err.stack}`
             );
         });
 }
